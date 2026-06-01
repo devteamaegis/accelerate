@@ -35,7 +35,7 @@ from accelerate.test_utils.testing import (
     run_command,
     run_first,
 )
-from accelerate.utils import patch_environment
+from accelerate.utils import ComputeEnvironment, DistributedType, patch_environment
 from accelerate.utils.launch import prepare_simple_launcher_cmd_env
 
 
@@ -277,6 +277,25 @@ class ClusterConfigTester(unittest.TestCase):
         assert config.distributed_type == "MULTI_GPU"
         assert config.num_processes == 2
         assert config.enable_cpu_affinity is True
+
+    def test_to_dict_does_not_mutate_enum_fields(self):
+        # to_dict() must not overwrite Enum fields on the instance with raw strings
+        config = ClusterConfig(
+            compute_environment="LOCAL_MACHINE",
+            distributed_type="NO",
+            mixed_precision="no",
+            num_processes=1,
+            debug=False,
+            use_cpu=True,
+            enable_cpu_affinity=False,
+        )
+        config.to_dict()
+        assert isinstance(config.compute_environment, ComputeEnvironment), (
+            f"to_dict() mutated compute_environment from Enum to {type(config.compute_environment)}"
+        )
+        assert isinstance(config.distributed_type, DistributedType), (
+            f"to_dict() mutated distributed_type from Enum to {type(config.distributed_type)}"
+        )
 
     def test_sagemaker_config(self):
         config = SageMakerConfig(

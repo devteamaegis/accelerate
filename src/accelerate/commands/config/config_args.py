@@ -81,7 +81,7 @@ class BaseConfig:
     debug: bool
 
     def to_dict(self):
-        result = self.__dict__
+        result = self.__dict__.copy()
         # For serialization, it's best to convert Enums to strings (or their underlying value type).
 
         def _convert_enums(value):
